@@ -1,0 +1,567 @@
+   0  $accept : %entry% $end
+
+   1  listing : commands EOF
+
+   2  commands : command
+   3           | command commands
+
+   4  command : META INT BOOL
+   5          | META INT INT
+   6          | META INT FLOAT
+   7          | META INT STR
+   8          | META INT LABEL
+   9          | LABEL COLON
+  10          | ADD
+  11          | SUB
+  12          | MUL
+  13          | DIV
+  14          | MOD
+  15          | POW
+  16          | PUSH SHARP INT
+  17          | GET INT
+  18          | SET INT
+  19          | GOTO LABEL
+  20          | GOTO_EQ LABEL
+  21          | GOTO_NE LABEL
+  22          | GOTO_LT LABEL
+  23          | GOTO_LE LABEL
+  24          | GOTO_GT LABEL
+  25          | GOTO_GE LABEL
+  26          | INVOKE INT
+  27          | CALL LABEL
+  28          | RESERVE INT
+  29          | RETURN
+  30          | RETURN INT
+  31          | RETURN_VOID
+  32          | RETURN_VOID INT
+  33          | STOP
+  34          | DEBUG STR
+  35          | GET_GLOB INT
+  36          | SET_GLOB INT
+
+  37  %entry% : '\001' listing
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	.  error
+
+	%entry%  goto 2
+
+
+state 1
+	%entry% : '\001' . listing  (37)
+
+	ADD  shift 3
+	SUB  shift 4
+	MUL  shift 5
+	DIV  shift 6
+	MOD  shift 7
+	POW  shift 8
+	PUSH  shift 9
+	GET  shift 10
+	SET  shift 11
+	GOTO  shift 12
+	GOTO_EQ  shift 13
+	GOTO_NE  shift 14
+	GOTO_LT  shift 15
+	GOTO_LE  shift 16
+	GOTO_GT  shift 17
+	GOTO_GE  shift 18
+	INVOKE  shift 19
+	CALL  shift 20
+	RESERVE  shift 21
+	RETURN  shift 22
+	RETURN_VOID  shift 23
+	STOP  shift 24
+	DEBUG  shift 25
+	GET_GLOB  shift 26
+	SET_GLOB  shift 27
+	LABEL  shift 28
+	META  shift 29
+	.  error
+
+	listing  goto 30
+	commands  goto 31
+	command  goto 32
+
+
+state 2
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 3
+	command : ADD .  (10)
+
+	.  reduce 10
+
+
+state 4
+	command : SUB .  (11)
+
+	.  reduce 11
+
+
+state 5
+	command : MUL .  (12)
+
+	.  reduce 12
+
+
+state 6
+	command : DIV .  (13)
+
+	.  reduce 13
+
+
+state 7
+	command : MOD .  (14)
+
+	.  reduce 14
+
+
+state 8
+	command : POW .  (15)
+
+	.  reduce 15
+
+
+state 9
+	command : PUSH . SHARP INT  (16)
+
+	SHARP  shift 33
+	.  error
+
+
+state 10
+	command : GET . INT  (17)
+
+	INT  shift 34
+	.  error
+
+
+state 11
+	command : SET . INT  (18)
+
+	INT  shift 35
+	.  error
+
+
+state 12
+	command : GOTO . LABEL  (19)
+
+	LABEL  shift 36
+	.  error
+
+
+state 13
+	command : GOTO_EQ . LABEL  (20)
+
+	LABEL  shift 37
+	.  error
+
+
+state 14
+	command : GOTO_NE . LABEL  (21)
+
+	LABEL  shift 38
+	.  error
+
+
+state 15
+	command : GOTO_LT . LABEL  (22)
+
+	LABEL  shift 39
+	.  error
+
+
+state 16
+	command : GOTO_LE . LABEL  (23)
+
+	LABEL  shift 40
+	.  error
+
+
+state 17
+	command : GOTO_GT . LABEL  (24)
+
+	LABEL  shift 41
+	.  error
+
+
+state 18
+	command : GOTO_GE . LABEL  (25)
+
+	LABEL  shift 42
+	.  error
+
+
+state 19
+	command : INVOKE . INT  (26)
+
+	INT  shift 43
+	.  error
+
+
+state 20
+	command : CALL . LABEL  (27)
+
+	LABEL  shift 44
+	.  error
+
+
+state 21
+	command : RESERVE . INT  (28)
+
+	INT  shift 45
+	.  error
+
+
+state 22
+	command : RETURN .  (29)
+	command : RETURN . INT  (30)
+
+	INT  shift 46
+	ADD  reduce 29
+	SUB  reduce 29
+	MUL  reduce 29
+	DIV  reduce 29
+	MOD  reduce 29
+	POW  reduce 29
+	PUSH  reduce 29
+	GET  reduce 29
+	SET  reduce 29
+	GOTO  reduce 29
+	GOTO_EQ  reduce 29
+	GOTO_NE  reduce 29
+	GOTO_LT  reduce 29
+	GOTO_LE  reduce 29
+	GOTO_GT  reduce 29
+	GOTO_GE  reduce 29
+	INVOKE  reduce 29
+	CALL  reduce 29
+	RESERVE  reduce 29
+	RETURN  reduce 29
+	RETURN_VOID  reduce 29
+	STOP  reduce 29
+	DEBUG  reduce 29
+	GET_GLOB  reduce 29
+	SET_GLOB  reduce 29
+	LABEL  reduce 29
+	META  reduce 29
+	EOF  reduce 29
+
+
+state 23
+	command : RETURN_VOID .  (31)
+	command : RETURN_VOID . INT  (32)
+
+	INT  shift 47
+	ADD  reduce 31
+	SUB  reduce 31
+	MUL  reduce 31
+	DIV  reduce 31
+	MOD  reduce 31
+	POW  reduce 31
+	PUSH  reduce 31
+	GET  reduce 31
+	SET  reduce 31
+	GOTO  reduce 31
+	GOTO_EQ  reduce 31
+	GOTO_NE  reduce 31
+	GOTO_LT  reduce 31
+	GOTO_LE  reduce 31
+	GOTO_GT  reduce 31
+	GOTO_GE  reduce 31
+	INVOKE  reduce 31
+	CALL  reduce 31
+	RESERVE  reduce 31
+	RETURN  reduce 31
+	RETURN_VOID  reduce 31
+	STOP  reduce 31
+	DEBUG  reduce 31
+	GET_GLOB  reduce 31
+	SET_GLOB  reduce 31
+	LABEL  reduce 31
+	META  reduce 31
+	EOF  reduce 31
+
+
+state 24
+	command : STOP .  (33)
+
+	.  reduce 33
+
+
+state 25
+	command : DEBUG . STR  (34)
+
+	STR  shift 48
+	.  error
+
+
+state 26
+	command : GET_GLOB . INT  (35)
+
+	INT  shift 49
+	.  error
+
+
+state 27
+	command : SET_GLOB . INT  (36)
+
+	INT  shift 50
+	.  error
+
+
+state 28
+	command : LABEL . COLON  (9)
+
+	COLON  shift 51
+	.  error
+
+
+state 29
+	command : META . INT BOOL  (4)
+	command : META . INT INT  (5)
+	command : META . INT FLOAT  (6)
+	command : META . INT STR  (7)
+	command : META . INT LABEL  (8)
+
+	INT  shift 52
+	.  error
+
+
+state 30
+	%entry% : '\001' listing .  (37)
+
+	.  reduce 37
+
+
+state 31
+	listing : commands . EOF  (1)
+
+	EOF  shift 53
+	.  error
+
+
+state 32
+	commands : command .  (2)
+	commands : command . commands  (3)
+
+	ADD  shift 3
+	SUB  shift 4
+	MUL  shift 5
+	DIV  shift 6
+	MOD  shift 7
+	POW  shift 8
+	PUSH  shift 9
+	GET  shift 10
+	SET  shift 11
+	GOTO  shift 12
+	GOTO_EQ  shift 13
+	GOTO_NE  shift 14
+	GOTO_LT  shift 15
+	GOTO_LE  shift 16
+	GOTO_GT  shift 17
+	GOTO_GE  shift 18
+	INVOKE  shift 19
+	CALL  shift 20
+	RESERVE  shift 21
+	RETURN  shift 22
+	RETURN_VOID  shift 23
+	STOP  shift 24
+	DEBUG  shift 25
+	GET_GLOB  shift 26
+	SET_GLOB  shift 27
+	LABEL  shift 28
+	META  shift 29
+	EOF  reduce 2
+
+	commands  goto 54
+	command  goto 32
+
+
+state 33
+	command : PUSH SHARP . INT  (16)
+
+	INT  shift 55
+	.  error
+
+
+state 34
+	command : GET INT .  (17)
+
+	.  reduce 17
+
+
+state 35
+	command : SET INT .  (18)
+
+	.  reduce 18
+
+
+state 36
+	command : GOTO LABEL .  (19)
+
+	.  reduce 19
+
+
+state 37
+	command : GOTO_EQ LABEL .  (20)
+
+	.  reduce 20
+
+
+state 38
+	command : GOTO_NE LABEL .  (21)
+
+	.  reduce 21
+
+
+state 39
+	command : GOTO_LT LABEL .  (22)
+
+	.  reduce 22
+
+
+state 40
+	command : GOTO_LE LABEL .  (23)
+
+	.  reduce 23
+
+
+state 41
+	command : GOTO_GT LABEL .  (24)
+
+	.  reduce 24
+
+
+state 42
+	command : GOTO_GE LABEL .  (25)
+
+	.  reduce 25
+
+
+state 43
+	command : INVOKE INT .  (26)
+
+	.  reduce 26
+
+
+state 44
+	command : CALL LABEL .  (27)
+
+	.  reduce 27
+
+
+state 45
+	command : RESERVE INT .  (28)
+
+	.  reduce 28
+
+
+state 46
+	command : RETURN INT .  (30)
+
+	.  reduce 30
+
+
+state 47
+	command : RETURN_VOID INT .  (32)
+
+	.  reduce 32
+
+
+state 48
+	command : DEBUG STR .  (34)
+
+	.  reduce 34
+
+
+state 49
+	command : GET_GLOB INT .  (35)
+
+	.  reduce 35
+
+
+state 50
+	command : SET_GLOB INT .  (36)
+
+	.  reduce 36
+
+
+state 51
+	command : LABEL COLON .  (9)
+
+	.  reduce 9
+
+
+state 52
+	command : META INT . BOOL  (4)
+	command : META INT . INT  (5)
+	command : META INT . FLOAT  (6)
+	command : META INT . STR  (7)
+	command : META INT . LABEL  (8)
+
+	BOOL  shift 56
+	INT  shift 57
+	FLOAT  shift 58
+	LABEL  shift 59
+	STR  shift 60
+	.  error
+
+
+state 53
+	listing : commands EOF .  (1)
+
+	.  reduce 1
+
+
+state 54
+	commands : command commands .  (3)
+
+	.  reduce 3
+
+
+state 55
+	command : PUSH SHARP INT .  (16)
+
+	.  reduce 16
+
+
+state 56
+	command : META INT BOOL .  (4)
+
+	.  reduce 4
+
+
+state 57
+	command : META INT INT .  (5)
+
+	.  reduce 5
+
+
+state 58
+	command : META INT FLOAT .  (6)
+
+	.  reduce 6
+
+
+state 59
+	command : META INT LABEL .  (8)
+
+	.  reduce 8
+
+
+state 60
+	command : META INT STR .  (7)
+
+	.  reduce 7
+
+
+38 terminals, 5 nonterminals
+38 grammar rules, 61 states

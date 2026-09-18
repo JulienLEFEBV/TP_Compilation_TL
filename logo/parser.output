@@ -1,0 +1,146 @@
+   0  $accept : %entry% $end
+
+   1  program : opt_cmd_seq
+
+   2  opt_cmd_seq :
+   3              | cmd_seq
+
+   4  cmd_seq : cmd
+   5          | cmd_seq cmd
+
+   6  cmd : FORWARD expr
+   7      | RIGHT expr
+   8      | PRINT expr
+   9      | PRINTS
+
+  10  expr : INT
+
+  11  %entry% : '\001' program
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	.  error
+
+	%entry%  goto 2
+
+
+state 1
+	%entry% : '\001' . program  (11)
+	opt_cmd_seq : .  (2)
+
+	FORWARD  shift 3
+	PRINT  shift 4
+	RIGHT  shift 5
+	PRINTS  shift 6
+	$end  reduce 2
+
+	program  goto 7
+	opt_cmd_seq  goto 8
+	cmd_seq  goto 9
+	cmd  goto 10
+
+
+state 2
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 3
+	cmd : FORWARD . expr  (6)
+
+	INT  shift 11
+	.  error
+
+	expr  goto 12
+
+
+state 4
+	cmd : PRINT . expr  (8)
+
+	INT  shift 11
+	.  error
+
+	expr  goto 13
+
+
+state 5
+	cmd : RIGHT . expr  (7)
+
+	INT  shift 11
+	.  error
+
+	expr  goto 14
+
+
+state 6
+	cmd : PRINTS .  (9)
+
+	.  reduce 9
+
+
+state 7
+	%entry% : '\001' program .  (11)
+
+	.  reduce 11
+
+
+state 8
+	program : opt_cmd_seq .  (1)
+
+	.  reduce 1
+
+
+state 9
+	opt_cmd_seq : cmd_seq .  (3)
+	cmd_seq : cmd_seq . cmd  (5)
+
+	FORWARD  shift 3
+	PRINT  shift 4
+	RIGHT  shift 5
+	PRINTS  shift 6
+	$end  reduce 3
+
+	cmd  goto 15
+
+
+state 10
+	cmd_seq : cmd .  (4)
+
+	.  reduce 4
+
+
+state 11
+	expr : INT .  (10)
+
+	.  reduce 10
+
+
+state 12
+	cmd : FORWARD expr .  (6)
+
+	.  reduce 6
+
+
+state 13
+	cmd : PRINT expr .  (8)
+
+	.  reduce 8
+
+
+state 14
+	cmd : RIGHT expr .  (7)
+
+	.  reduce 7
+
+
+state 15
+	cmd_seq : cmd_seq cmd .  (5)
+
+	.  reduce 5
+
+
+11 terminals, 7 nonterminals
+12 grammar rules, 16 states
