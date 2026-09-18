@@ -1,0 +1,26 @@
+
+MAKE "x	3
+MAKE "y 2
+
+; question (1)
+print :x - 1
+print 1 - :x - 2
+
+; question (2)
+print 1 * 2
+print 1 * 2 * 3
+print 1 * 2 + 3
+print 1 + 2 * 3
+print (1 + 2) * 3
+
+; question (3)
+print 1 / 2
+print 1 % 2
+print 1 * 2 / 3
+print (1 * 2) + 3 / (2 % 3)
+
+; question (4)
+print 1 ^ 2
+print 1 ^ 2 ^ 3
+print 1 * 2 ^ 3
+print 1 ^(2 + 3)

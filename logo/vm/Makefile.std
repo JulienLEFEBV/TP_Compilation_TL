@@ -1,0 +1,29 @@
+
+# Configuration
+OCAMLC = ocamlc
+OCAMLLEX = ocamllex
+OCAMLYACC = ocamlyacc
+
+OCAMLYACC_FLAGS=--strict -v
+OCAMLLEX_FLAGS=-ml
+
+# specific rules
+
+clean:
+	-rm -rf $(CLEAN)
+	for d in $(SUBDIRS); do cd $$d; make clean; cd ..; done
+
+# generic rules
+%.cmo: %.ml
+	$(OCAMLC) $(OCAMLC_FLAGS) -c $< -o $@
+
+%.ml %.mli: %.mly
+	$(OCAMLYACC) $(OCAMLYACC_FLAGS) $<
+
+%.ml: %.mll
+	$(OCAMLLEX) $(OCAMLLEX_FLAGS) $<
+
+%.cmi: %.mli
+	$(OCAMLC) $(OCAMLC_FLAGS) -o $@ -c $<
+
+

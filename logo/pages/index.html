@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>LogoApp V1.0</title>
+
+	<style type="text/css" media="screen">
+
+		/* main structure */
+		body {
+			margin: 0;
+			height: 100vh;
+			display: flex;
+			flex-direction: column;
+			overflow-y: auto;
+			gap: 8px;
+			box-sizing: border-box;
+			padding: 16px;
+		}
+		.row {
+			display: flex;
+			gap: 32px;
+			box-sizing: border-box;
+			flex: 1;
+			min-height: 0;
+		}
+		.column {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+			min-height: 0;
+		}
+
+		.part {
+			border-style: none none solid none;
+			/*margin-top: 1em;*/
+		}
+		.title {
+			color: blue;
+			text-shadow: 2px 2px 2px #AAAAAA;
+			font-weight: bold;
+			font-size: x-large;
+			/*margin-bottom: 1em;*/
+		}
+		.title span {
+			font-size: medium;
+			color: black;
+			text-shadow: none;
+		}
+
+		/* drawing */
+		.drawing-container {
+			width: 400px;
+			height: 400px;
+			overflow: auto;
+			border: 1px solid black;
+			margin-top: 4px;
+		}
+
+		/* console */
+		#console {
+			background-color: #FFFFE0;
+			padding: .5em .5em .5em .5em;
+			overflow: scroll;
+			flex: 1;
+		}
+
+		/* disassembly */
+		#quads {
+			height: 20em;
+			overflow-y: scroll;
+			flex: 1;
+		}
+		#canvas-container {
+			overflow: scroll;
+			width: 100%;
+			height: 40%;
+		}
+		#quads div span {
+			vertical-align: 25%;
+			font-size: 50%;
+			color: #EEEEEE;
+			background-color: white;
+			font-weight: bold;
+			margin-right: .5em;
+			padding: 2px;
+			border-radius: 6px;
+			-webkit-user-select: none; /* Safari */
+			-ms-user-select: none; /* IE 10 and IE 11 */
+			user-select: none; /* standard */
+		}
+		#regs {
+			margin-top: .5em;
+		}
+		#regs div {
+			display: inline-block;
+		}
+		#regs div span {
+			padding: 2px;
+			border: 1px solid;
+			width: 4em;
+			margin-left: .5em;
+			margin-right: 1em;
+			display: inline-block;
+			text-align: right;
+			border: 1px solid;
+		}
+
+		.hide {
+			width: 1em;
+			height: 1em;
+			display: inline-block;
+			text-align: center;
+			border: 1px solid;
+			font-weight: bold;
+			margin-bottom: 2px;
+			margin-right: 4px;
+			font-size: small;
+			-webkit-user-select: none; /* Safari */
+			-ms-user-select: none; /* IE 10 and IE 11 */
+			user-select: none; /* standard */
+			padding-bottom: 4px;
+		}
+		.bp {
+			width: 10px;
+			height: 10px;
+			background-color: red;
+			color: white;
+			border-radius: 50%;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 8px;
+			font-weight: bold;
+		}
+
+		/* stack */
+		#stack {
+			width: 200px;
+			border: 2px solid black;
+			font-family: sans-serif;
+			flex: 1;
+			min-height: 0;
+			overflow: scroll;
+			margin-top: 4px;
+		}
+
+		#stack div {
+			display: flex;
+			justify-content: space-between;
+			padding: 5px 10px;
+			border-bottom: 1px solid #ddd;
+		}
+
+		#stack div span:nth-child(1) {
+			font-weight: bold;
+			color: gray;
+			padding-right: 4px;
+		}
+
+		#stack div span:nth-child(2) {
+			flex: 1;
+			text-align: right;
+			padding-right: 4px;
+		}
+	</style>
+
+	<script>
+
+		let sERROR = 0
+		let sOK = 1
+		let sBP = 2
+		let sSTOP = 3
+
+		// style
+		const bp_enable = "red";
+		const bp_disable = "white";
+		const bg_color = "#CCCCCC";
+		const reg_bg = "#FFFFFF";
+		const reg_changed = "pink";
+		const select_color = "cyan";
+		const select_none = "white";
+		const stack_changed = "pink";
+
+		// state
+		var running = false;
+		var start_date = 0;
+		var select_line = -1;
+		var turtle_x = 200;
+		var turtle_y = 200;
+		var tutle_head = 0;
+		var regs_hidden = true;
+		var pc = 0;
+		var sp = 0;
+		var fp = 0;
+		var turtle = null;
+		var drawing = null;
+		var reset_but = null;
+		var step_but = null;
+		var cont_but = null;
+		var pc_field = null;
+		var sp_field = null;
+		var fp_field = null;
+		var stack = null;
+		var old_sp = 0;
+
+		function disassemble() {
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if(this.readyState == 4 && this.status == 200) {
+					var qs = JSON.parse(xhttp.responseText);
+					node = document.getElementById("quads");
+					node.innerHTML = "";
+					var i = 0;
+					for(const q of qs) {
+						node.innerHTML += "<div><span ondblclick=\"javascript:set_bp("+i+")\" class=\"bp\">B</span>" + q + "</div>";
+						i++;
+					}
+					do_reset();
+				}
+			}
+			xhttp.open("GET", "disassemble", true);
+			xhttp.send();
+		}
+
+		function write_console(t) {
+			document.getElementById("console").innerHTML += "<div>" + t + "</div>";
+			//console.log(t);
+		}
+
+		function clear_console() {
+			document.getElementById("console").innerHTML = "";
+		}
+
+		function update_regs() {
+			if(regs_hidden)
+				return;
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if(this.readyState == 4 && this.status == 200) {
+					var ans = JSON.parse(xhttp.responseText);
+					var regs = document.getElementById("regs");
+					for(var i = regs.children.length; i < ans.length; i++) {
+						div = document.createElement("div");
+						div.innerHTML = "R" + i + "<span>0</span>";
+						regs.appendChild(div);
+					}
+					for(var i = 0; i < ans.length; i++) {
+						span = regs.children[i].getElementsByTagName("span")[0];
+						val = "" + ans[i];
+						if(val == span.innerHTML)
+							span.style.backgroundColor = reg_bg;
+						else {
+							span.innerHTML = val;
+							span.style.backgroundColor = reg_changed;
+						}
+					}
+				}
+			}
+			xhttp.open("GET", "regs", true);
+			xhttp.send();
+		}
+
+		function set_bp(a) {
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if(this.readyState == 4 && this.status == 200) {
+					var ans = JSON.parse(xhttp.responseText);
+					node = document.getElementById("quads");
+					if(ans)
+						node.children[a].children[0].style.backgroundColor = bp_enable;
+					else
+						node.children[a].children[0].style.backgroundColor = bp_disable;
+				}
+			}
+			xhttp.open("GET", "bp?num=" + a, true);
+			xhttp.send();
+		}
+
+		function before_unload() {
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if(this.readyState == 4 && this.status == 200) {
+				}
+			}
+			xhttp.open("GET", "quit", true);
+			xhttp.send();
+			now = (new Date()).getTime();
+			while(((new Date()).getTime() - now) < 250);
+		}
+
+		function do_quit() {
+			write_console("Quitting!")
+			window.open('','_self').close();
+		}
+
+		function turtle_draw(x, y) {
+			let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+			line.setAttribute("x1", turtle_x);
+			line.setAttribute("y1", turtle_y);
+			line.setAttribute("x2", x);
+			line.setAttribute("y2", y);
+			line.setAttribute("stroke", "black");
+			line.setAttribute("stroke-width", 2);
+			drawing.insertBefore(line, turtle);
+			turtle_x = x;
+			turtle_y = y;
+		}
+
+		function turtle_clear() {
+			let child = drawing.firstElementChild;
+			while(child != turtle) {
+				drawing.removeChild(child);
+				child = drawing.firstElementChild;
+			}
+		}
+
+		function turtle_move(x, y, head) {
+			turtle_x = x;
+			turtle_y = y;
+			turtle_head = head;
+		}
+
+		function update_stack(new_sp, new_stack) {
+
+			// clear colors
+			for(let entry of stack.children)
+				entry.children[1].style.backgroundColor = null;
+
+			// add missing entries if needed
+			while(stack.children.length < new_sp)
+				stack.insertAdjacentHTML(
+					"beforeend",
+					`<div><span>${stack.children.length}</span><span></span></div>`
+				);
+
+			// update entries
+			for(let i = 0; i < new_sp; i++) {
+				let new_val = "" + new_stack[i];
+				let cell = stack.children[i].children[1];
+				if(new_val != cell.innerText)
+					cell.style.backgroundColor = stack_changed;
+				cell.innerText = new_val;
+			}
+
+			// clear fried entries
+			for(let i = new_sp; i < old_sp; i++) {
+				let cell = stack.children[i].children[1];
+				cell.innerText = "";
+				cell.style.background = stack_changed;
+			}
+
+			// update stack
+			old_sp = new_sp;
+		}
+
+		function clear_stack() {
+			for(let row of stack.children) {
+				let cell = row.children[1];
+				cell.style.backgroundColor = null;
+				cell.innerText = "";
+			}
+			old_sp = 0;
+		}
+
+		function update_after_exec(ans) {
+
+			// update console
+			for(const m of ans.messages)
+				write_console(m);
+
+			// stop running for error
+			if(ans.status == sSTOP || ans.status == sBP)
+				stop_run();
+
+			// perform actions
+			for(let action of ans.actions) {
+				switch(action.action) {
+				case "draw":
+					turtle_draw(action.x, action.y);
+					break;
+				case "move":
+					turtle_move(action.x, action.y, action.head);
+					break;
+				case "print":
+					write_console(action.value );
+					break;
+				default:
+					console.log("ERROR: unknown action " + action.action);
+				}
+			}
+
+			// update the current line
+			dnode = document.getElementById("quads");
+			if(select_line >= 0)
+				dnode.childNodes[select_line].style.backgroundColor = select_none;
+			select_line = ans.pc;
+			dnode.childNodes[select_line].style.backgroundColor = select_color;
+			dnode.childNodes[select_line].scrollIntoView({ behavior: "smooth", block: "center" });
+
+			// update turtle
+			turtle_x = ans.x;
+			turtle_y = ans.y;
+			turtle_head = ans.head;
+			turtle.setAttribute("x", turtle_x - 10);
+			turtle.setAttribute("y", turtle_y - 10);
+			const rot = "rotate(" + (-turtle_head) + " " + turtle_x + " " + turtle_y + ")";
+			turtle.setAttribute("transform", rot);
+
+			// update registers
+			pc_field.innerText = "" + ans.pc;
+			sp_field.innerText = "" + ans.sp;
+			fp_field.innerText = "" + ans.fp;
+
+			// update stack
+			update_stack(ans.sp, ans.stack);
+		}
+
+		function do_step() {
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if(this.readyState == 4 && this.status == 200) {
+					var ans = JSON.parse(xhttp.responseText);
+					update_after_exec(ans);
+				}
+			}
+			xhttp.open("GET", "step", true);
+			xhttp.send();
+		}
+
+		function do_reset() {
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if(this.readyState == 4 && this.status == 200) {
+					var ans = JSON.parse(xhttp.responseText);
+					turtle_clear();
+					clear_stack();
+					clear_console();
+					write_console("Maching reset!");
+					update_after_exec(ans);
+					again();
+				}
+			}
+			xhttp.open("GET", "reset", true);
+			xhttp.send();
+		}
+
+		function again() {
+			if(!running)
+				return;
+			now = Date.now();
+			if(start_date < 0
+			|| now >= start_date + quantum) {
+				start_date = now;
+				complete_continue();
+			}
+			else
+				setTimeout(again, start_date + quantum - now);
+		}
+
+		function start_run() {
+			if(running)
+				return;
+			reset_but.disabled = true;
+			step_but.disabled = true;
+			run_but.innerText = "Stop";
+			running = true;
+			start_date = -1;
+			repeat_continue();
+		}
+
+		function stop_run() {
+			running = false;
+			reset_but.disabled = false;
+			step_but.disabled = false;
+			run_but.innerText = "Run";
+		}
+
+		function do_run() {
+			if(running)
+				stop_run();
+			else
+				start_run();
+		}
+
+		function complete_continue() {
+			stop_run();
+		}
+
+		function repeat_continue() {
+			if(!running) {
+				complete_continue();
+				return;
+			}
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if(this.readyState == 4) {
+					if(this.status != 200)
+						complete_continue();
+					else {
+						var ans = JSON.parse(xhttp.responseText);
+						update_after_exec(ans);
+						if(ans.status != 2)
+							repeat_continue();
+						else
+							complete_continue();
+					}
+				}
+			}
+			xhttp.timeout = 400;
+			xhttp.open("GET", "continue", true);
+			xhttp.send();
+		}
+
+		function show_regs() {
+			regs = document.getElementById("regs");
+			but = document.getElementById("show-regs");
+			if(regs_hidden) {
+				regs_hidden = false;
+				regs.style.display = "block";
+				but.innerHTML = "-";
+				update_regs();
+			}
+			else {
+				regs_hidden = true;
+				regs.style.display = "none";
+				but.innerHTML = "+";
+			}
+
+		}
+
+
+		// stack management
+		/*function push_stack(value) {
+			const index = stack.children.length;
+			const item = document.createElement("div");
+			item.className = "stack-item";
+			item.dataset.index = index;
+			const left = document.createElement("div");
+			left.textContent = index;
+			const right = document.createElement("div");
+			right.textContent = value;
+			item.appendChild(left);
+			item.appendChild(right);
+			stack.appendChild(item);
+		}
+
+		function pop_stack() {
+			stack.lastElementChild.remove();
+		}
+
+		function set_stack(i, x) {
+			stack.children[i][1].textContent = "" + x;
+		}*/
+
+	</script>
+
+</head>
+<body onbeforeunload="before_unload()">
+
+	<div class="title">Logo V1.0 <span>Logo Program Execution</span></div>
+
+	<form>
+		<input type="button" value="Reset" onclick="javascript:do_reset();"  id="reset-but"/>
+		<input type="button" value="Step" onclick="javascript:do_step();" id="step-but"/>
+		<input type="button" value="Run" onclick="javascript:do_run();" id="run-but"/>
+		<input type="button" value="About" onclick="javascript:do_about();"/>
+		<input type="button" value="Quit" onclick="javascript:do_quit();"/>
+	</form>
+
+	<div class="row">
+		<div id="map" class="column">
+			<div class="part">Drawing</div>
+			<div class="drawing-container">
+				<svg id="drawing"  class="drawing" width="400" height="400" viewBox="0 0 400 400">
+					<!--circle cx="50" cy="50" r="40" fill="blue" /-->
+					<image id="turtle" href="turtle.svg" x="0" y="0" width="20px" height="20px"/>
+				</svg>
+			</div>
+		</div>
+		<div id="disasm" class="column">
+			<div class="part">Program</div>
+			<div id="quads">
+			</div>
+			<div id="regs">
+				<div>PC<span id="pc">0</span></div>
+				<div>SP<span id="sp">0</span></div>
+				<div>FP<span id="fp">0</span></div>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="row">
+		<div class="column">
+			<div class="part">Console</div>
+			<div id="console">
+				<div>Welcome in AutoCell!</div>
+			</div>
+		</div>
+		<div class="column">
+			<div class="part">Stack</div>
+			<div id="stack">
+				<div><span>0</span><span></span></div>
+				<div><span>1</span><span></span></div>
+				<div><span>2</span><span></span></div>
+				<div><span>3</span><span></span></div>
+				<div><span>4</span><span></span></div>
+				<div><span>5</span><span></span></div>
+				<div><span>6</span><span></span></div>
+				<div><span>7</span><span></span></div>
+				<div><span>8</span><span></span></div>
+				<div><span>9</span><span></span></div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		turtle = document.getElementById("turtle");
+		drawing = document.getElementById("drawing");
+		reset_but = document.getElementById("reset-but");
+		step_but = document.getElementById("step-but");
+		run_but = document.getElementById("run-but");
+		pc_field = document.getElementById("pc");
+		sp_field = document.getElementById("sp");
+		fp_field = document.getElementById("fp");
+		stack = document.getElementById("stack");
+		console.log("stack children = " + stack.children);
+		disassemble();
+	</script>
+
+</body>
+</html>

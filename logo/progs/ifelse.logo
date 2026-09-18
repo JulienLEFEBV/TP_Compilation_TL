@@ -1,0 +1,13 @@
+
+MAKE "x 3
+
+IFELSE :x = 5 [
+	RIGHT 90
+]
+[
+	LEFT 90
+]
+
+FORWARD 20
+
+print "A gauche!"

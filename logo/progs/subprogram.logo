@@ -1,0 +1,15 @@
+
+to one_step
+	right 150
+	forward 30
+	left 105
+	forward 30
+end
+
+forward 50
+left 90
+forward 30
+
+repeat 10 [
+	one_step
+]

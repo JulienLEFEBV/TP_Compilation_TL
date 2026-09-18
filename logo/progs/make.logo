@@ -1,0 +1,8 @@
+
+MAKE "x 111
+PRINT :x
+
+MAKE "_x 		0
+MAKE "a_b_c_ 	0
+MAKE "_xx1_23_a	0
+MAKE "x1y2z3	0

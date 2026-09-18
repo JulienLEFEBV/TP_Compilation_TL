@@ -1,0 +1,7 @@
+
+to muladd :x :y :z
+	print :x * :y + :z
+end
+
+muladd  1 2 3
+print "= 5"

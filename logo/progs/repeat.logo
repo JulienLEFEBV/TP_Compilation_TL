@@ -1,0 +1,5 @@
+
+REPEAT 4 [
+	FORWARD 50
+	right 90
+]

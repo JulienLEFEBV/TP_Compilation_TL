@@ -1,0 +1,4 @@
+
+make "x	10
+make "y :x
+
