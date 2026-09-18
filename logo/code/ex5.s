@@ -16,7 +16,7 @@ loop:
 	push #5
 	push #11
 	invoke 8
-	goto_le if
+	goto_lt if
 	invoke 4
 	goto end_if
 if:
