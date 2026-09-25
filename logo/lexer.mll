@@ -35,8 +35,15 @@ rule token = parse
 
 
 |	"forward"	{ FORWARD }
+|   "backward"  { BACKWARD }
+|   "left" 		{ LEFT }
 |	"print"		{ PRINT }
 |	"right"		{ RIGHT }
+|	"home"		{ HOME }
+|	"make"		{ MAKE }
+|	'\"' (id as n)	{ NAME n }
+|	':' (id	as n)	{ REF n }
+|	"+"			{ ADD }
 
 
 |	"print" blank* '"' ([^ '"']* as x) '"'

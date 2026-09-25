@@ -104,8 +104,13 @@
 %token EOF
 
 %token FORWARD
+%token BACKWARD
 %token PRINT
 %token RIGHT
+%token LEFT
+%token HOME
+%token MAKE
+%token ADD
 
 
 %token<int> INT
@@ -142,14 +147,37 @@ cmd:
 		{ SYSCALL (Logo.cFORWARD, [$2]) }
 |	RIGHT expr
 		{ SYSCALL (Logo.cRIGHT, [$2]) }
+| 	BACKWARD expr   
+		{ NOP } 
+| 	LEFT expr
+		{ NOP }
 |	PRINT expr
 		{ PRINT $2 }
 |	PRINTS
 		{ PRINTS $1 }
+| 	HOME
+		{ NOP }
+|	MAKE NAME expr
+		{ NOP }
 ;
 
 
 expr:
+	val_ref
+		{ NONE }
+|	expr ADD add_expr
+		{ NONE }
+;
+
+val_ref:
 	INT
 		{ CST $1 }
+|	REF
+		{ NONE }
+;
+
+
+add_expr :
+	val_ref
+		{ NONE }
 ;
