@@ -44,7 +44,13 @@ rule token = parse
 |	'\"' (id as n)	{ NAME n }
 |	':' (id	as n)	{ REF n }
 |	"+"			{ ADD }
-
+|	"-"			{ MINUS }
+|	"*"			{ MUL }
+|	"/"			{ DIV }
+|	"%"			{ MOD }
+|   "^"			{ POW }
+|	'('			{ LEFT_PAR }
+|	')'			{ RIGHT_PAR }
 
 |	"print" blank* '"' ([^ '"']* as x) '"'
 				{ PRINTS x }

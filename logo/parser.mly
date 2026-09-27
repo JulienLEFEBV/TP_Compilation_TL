@@ -111,7 +111,14 @@
 %token HOME
 %token MAKE
 %token ADD
+%token MINUS
+%token MUL
+%token DIV
+%token MOD
+%token POW
 
+%token LEFT_PAR
+%token RIGHT_PAR
 
 %token<int> INT
 %token<string> NAME
@@ -163,21 +170,38 @@ cmd:
 
 
 expr:
-	val_ref
-		{ NONE }
-|	expr ADD add_expr
+	expr ADD mul_div_mod
+		{ printf "+ ";NONE }
+|	expr MINUS mul_div_mod
+		{ printf "- ";NONE }
+|	mul_div_mod
 		{ NONE }
 ;
 
-val_ref:
+val_ref_par:
 	INT
-		{ CST $1 }
+		{ printf "%d " $1; CST $1 }
 |	REF
 		{ NONE }
+|	LEFT_PAR expr RIGHT_PAR
+		{ NONE }
+	
 ;
 
-
-add_expr :
-	val_ref
+mul_div_mod :
+	mul_div_mod MUL power
+		{ printf "* ";NONE }
+|	mul_div_mod DIV power
+		{ printf "/ ";NONE }
+|	mul_div_mod MOD power
+		{ printf "mod ";NONE }
+|	power
 		{ NONE }
+;
+
+power : 
+	val_ref_par
+		{ NONE }
+|	val_ref_par POW power
+		{ printf "^ "; NONE }
 ;
