@@ -155,53 +155,53 @@ cmd:
 |	RIGHT expr
 		{ SYSCALL (Logo.cRIGHT, [$2]) }
 | 	BACKWARD expr   
-		{ NOP } 
+		{ SYSCALL (Logo.cBACKWARD, [$2]) } 
 | 	LEFT expr
-		{ NOP }
+		{ SYSCALL (Logo.cLEFT, [$2]) }
 |	PRINT expr
 		{ PRINT $2 }
 |	PRINTS
 		{ PRINTS $1 }
 | 	HOME
-		{ NOP }
+		{ SYSCALL (Logo.cHOME, []) }
 |	MAKE NAME expr
-		{ NOP }
+		{ MAKE ((make_var $2), $3) }
 ;
 
 
 expr:
 	expr ADD mul_div_mod
-		{ printf "+ ";NONE }
+		{ BINOP(OP_ADD,$1,$3) }
 |	expr MINUS mul_div_mod
-		{ printf "- ";NONE }
+		{ BINOP(OP_SUB,$1,$3) }
 |	mul_div_mod
-		{ NONE }
+		{ $1 }
 ;
 
 val_ref_par:
 	INT
-		{ printf "%d " $1; CST $1 }
+		{ CST $1 }
 |	REF
-		{ NONE }
+		{ let res = get_var $1 in if res = -1 then error "Unknown variable" else (VAR res) }
 |	LEFT_PAR expr RIGHT_PAR
-		{ NONE }
+		{ $2 }
 	
 ;
 
 mul_div_mod :
 	mul_div_mod MUL power
-		{ printf "* ";NONE }
+		{ BINOP(OP_MUL,$1,$3) }
 |	mul_div_mod DIV power
-		{ printf "/ ";NONE }
+		{ BINOP(OP_DIV,$1,$3) }
 |	mul_div_mod MOD power
-		{ printf "mod ";NONE }
+		{ BINOP(OP_MOD,$1,$3) }
 |	power
-		{ NONE }
+		{ $1 }
 ;
 
 power : 
 	val_ref_par
-		{ NONE }
+		{ $1 }
 |	val_ref_par POW power
-		{ printf "^ "; NONE }
+		{ BINOP(OP_POW,$1,$3) }
 ;

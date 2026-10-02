@@ -1,0 +1,27 @@
+make "a 0
+make "l 20
+
+home
+right :a
+forward :l
+make "a :a + 90
+make "l :l * 2
+
+home
+right :a
+forward :l
+make "a :a + 90
+make "l :l - 20
+
+home
+right :a
+forward :l
+make "a :a + 90
+make "l :l * 2
+
+home
+right :a
+forward :l
+make "a :a + 90
+make "l :l - 20
+

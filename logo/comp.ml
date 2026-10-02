@@ -85,7 +85,8 @@ let rec comp_cmd cmd =
 	| SYSCALL (cmd, args) ->
 		(List.flatten (List.map comp_expr (List.rev args)))
 		@ [INVOKE cmd]
-	 
+	| MAKE (ref,expr) ->
+		comp_expr expr @ [SET_GLOB ref]
 	| _ -> failwith "unsupported command!"
 	 
 
@@ -99,6 +100,16 @@ and comp_expr expr =
 		failwith "attempt to compile NONE expression!"
 	| CST n ->
 		[PUSH n]
+	| VAR ref ->
+		[GET_GLOB ref]
+	| BINOP (op,expr1,expr2) ->
+		comp_expr expr2 @ comp_expr expr1 @ [match op with 
+												  OP_ADD -> ADD
+												| OP_SUB -> SUB
+												| OP_DIV -> DIV
+												| OP_MOD -> MOD
+												| OP_MUL -> MUL
+												| OP_POW -> POW]
 	| _ -> failwith "unsupported expression!"
 	 
 
