@@ -116,14 +116,30 @@
 %token DIV
 %token MOD
 %token POW
+%token REPEAT
+%token IF
+%token IFELSE
+%token END
 
+
+%token LEFT_SQUARE_BRACKET
+%token RIGHT_SQUARE_BRACKET
 %token LEFT_PAR
 %token RIGHT_PAR
+
+%token EQUAL
+%token SHARP
+%token INF
+%token INF_EQ
+%token SUP
+%token SUP_EQ
 
 %token<int> INT
 %token<string> NAME
 %token <string> REF
 %token <string> PRINTS
+%token <string> SUB_PROG_DEC
+%token <string> SUB_PROG
 
 %start program
 %type<Ast.command> program
@@ -150,7 +166,29 @@ cmd_seq:
 ;
 
 cmd:
-	FORWARD expr
+	SUB_PROG_DEC opt_cmd_seq_without_dec END
+		{ let res = get_fun $1 in if res = -1 then make_fun $1 $2 else failwith "Redefinition de fonction"; NOP }
+|	cmd_without_declaration
+		{ $1 }	
+;
+
+opt_cmd_seq_without_dec:
+	/* empty */
+		{ NOP }
+|	cmd_seq_without_dec
+		{ $1 }
+;
+
+cmd_seq_without_dec:
+	cmd_without_declaration
+		{ $1 }
+| cmd_seq_without_dec cmd_without_declaration
+		{ SEQ($1, $2) }
+;
+
+
+cmd_without_declaration:
+		FORWARD expr
 		{ SYSCALL (Logo.cFORWARD, [$2]) }
 |	RIGHT expr
 		{ SYSCALL (Logo.cRIGHT, [$2]) }
@@ -166,8 +204,30 @@ cmd:
 		{ SYSCALL (Logo.cHOME, []) }
 |	MAKE NAME expr
 		{ MAKE ((make_var $2), $3) }
+|	REPEAT expr LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET
+		{ REPEAT ($2,$4) }
+|	IF condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET
+		{ IF ($2,$4,NOP) }
+|	IFELSE condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET
+		{ IF ($2,$4,$7) }
+|	SUB_PROG
+		{ let res = get_fun $1 in if res = -1 then failwith "Fonction non definie" else CALL_CMD(string_of_int res,0,[]) }
 ;
 
+condition:
+	expr EQUAL expr
+		{ COMP(COMP_EQ, $1, $3) }
+|	expr SHARP expr
+		{ COMP(COMP_NE, $1, $3) }
+|	expr INF expr
+		{ COMP(COMP_LT, $1, $3) }
+|	expr INF_EQ expr
+		{ COMP(COMP_LE, $1, $3) }
+|	expr SUP expr 
+		{ COMP(COMP_GT, $1, $3) }
+|	expr SUP_EQ expr
+		{ COMP(COMP_GE, $1, $3) }
+;
 
 expr:
 	expr ADD mul_div_mod

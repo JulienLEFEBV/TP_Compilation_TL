@@ -51,6 +51,20 @@ rule token = parse
 |   "^"			{ POW }
 |	'('			{ LEFT_PAR }
 |	')'			{ RIGHT_PAR }
+|	'[' 		{ LEFT_SQUARE_BRACKET }
+|	']'			{ RIGHT_SQUARE_BRACKET }
+|	"repeat"	{ REPEAT }
+|	'='			{ EQUAL }
+|	'<'			{ INF }
+|	"<="		{ INF_EQ }
+|	'>'			{ SUP }
+|	">="		{ SUP_EQ }
+|	'#'			{ SHARP }
+|	"if"		{ IF }
+|	"ifelse"	{ IFELSE }
+|	"to " (id as n)	{ SUB_PROG_DEC n }
+|	"end"		{ END }
+|	(id as n)	{ SUB_PROG n }
 
 |	"print" blank* '"' ([^ '"']* as x) '"'
 				{ PRINTS x }

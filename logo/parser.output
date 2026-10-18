@@ -8,32 +8,52 @@
    4  cmd_seq : cmd
    5          | cmd_seq cmd
 
-   6  cmd : FORWARD expr
-   7      | RIGHT expr
-   8      | BACKWARD expr
-   9      | LEFT expr
-  10      | PRINT expr
-  11      | PRINTS
-  12      | HOME
-  13      | MAKE NAME expr
+   6  cmd : SUB_PROG_DEC opt_cmd_seq_without_dec END
+   7      | cmd_without_declaration
 
-  14  expr : expr ADD mul_div_mod
-  15       | expr MINUS mul_div_mod
-  16       | mul_div_mod
+   8  opt_cmd_seq_without_dec :
+   9                          | cmd_seq_without_dec
 
-  17  val_ref_par : INT
-  18              | REF
-  19              | LEFT_PAR expr RIGHT_PAR
+  10  cmd_seq_without_dec : cmd_without_declaration
+  11                      | cmd_seq_without_dec cmd_without_declaration
 
-  20  mul_div_mod : mul_div_mod MUL power
-  21              | mul_div_mod DIV power
-  22              | mul_div_mod MOD power
-  23              | power
+  12  cmd_without_declaration : FORWARD expr
+  13                          | RIGHT expr
+  14                          | BACKWARD expr
+  15                          | LEFT expr
+  16                          | PRINT expr
+  17                          | PRINTS
+  18                          | HOME
+  19                          | MAKE NAME expr
+  20                          | REPEAT expr LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET
+  21                          | IF condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET
+  22                          | IFELSE condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET
+  23                          | SUB_PROG
 
-  24  power : val_ref_par
-  25        | val_ref_par POW power
+  24  condition : expr EQUAL expr
+  25            | expr SHARP expr
+  26            | expr INF expr
+  27            | expr INF_EQ expr
+  28            | expr SUP expr
+  29            | expr SUP_EQ expr
 
-  26  %entry% : '\001' program
+  30  expr : expr ADD mul_div_mod
+  31       | expr MINUS mul_div_mod
+  32       | mul_div_mod
+
+  33  val_ref_par : INT
+  34              | REF
+  35              | LEFT_PAR expr RIGHT_PAR
+
+  36  mul_div_mod : mul_div_mod MUL power
+  37              | mul_div_mod DIV power
+  38              | mul_div_mod MOD power
+  39              | power
+
+  40  power : val_ref_par
+  41        | val_ref_par POW power
+
+  42  %entry% : '\001' program
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -45,7 +65,7 @@ state 0
 
 
 state 1
-	%entry% : '\001' . program  (26)
+	%entry% : '\001' . program  (42)
 	opt_cmd_seq : .  (2)
 
 	FORWARD  shift 3
@@ -55,13 +75,19 @@ state 1
 	LEFT  shift 7
 	HOME  shift 8
 	MAKE  shift 9
-	PRINTS  shift 10
+	REPEAT  shift 10
+	IF  shift 11
+	IFELSE  shift 12
+	PRINTS  shift 13
+	SUB_PROG_DEC  shift 14
+	SUB_PROG  shift 15
 	$end  reduce 2
 
-	program  goto 11
-	opt_cmd_seq  goto 12
-	cmd_seq  goto 13
-	cmd  goto 14
+	program  goto 16
+	opt_cmd_seq  goto 17
+	cmd_seq  goto 18
+	cmd  goto 19
+	cmd_without_declaration  goto 20
 
 
 state 2
@@ -71,107 +97,180 @@ state 2
 
 
 state 3
-	cmd : FORWARD . expr  (6)
+	cmd_without_declaration : FORWARD . expr  (12)
 
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	expr  goto 18
-	mul_div_mod  goto 19
-	val_ref_par  goto 20
-	power  goto 21
-
-
-state 4
-	cmd : BACKWARD . expr  (8)
-
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	expr  goto 22
-	mul_div_mod  goto 19
-	val_ref_par  goto 20
-	power  goto 21
-
-
-state 5
-	cmd : PRINT . expr  (10)
-
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	expr  goto 23
-	mul_div_mod  goto 19
-	val_ref_par  goto 20
-	power  goto 21
-
-
-state 6
-	cmd : RIGHT . expr  (7)
-
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
 	.  error
 
 	expr  goto 24
-	mul_div_mod  goto 19
-	val_ref_par  goto 20
-	power  goto 21
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 4
+	cmd_without_declaration : BACKWARD . expr  (14)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 28
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 5
+	cmd_without_declaration : PRINT . expr  (16)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 29
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 6
+	cmd_without_declaration : RIGHT . expr  (13)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 30
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
 
 
 state 7
-	cmd : LEFT . expr  (9)
+	cmd_without_declaration : LEFT . expr  (15)
 
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
 	.  error
 
-	expr  goto 25
-	mul_div_mod  goto 19
-	val_ref_par  goto 20
-	power  goto 21
+	expr  goto 31
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
 
 
 state 8
-	cmd : HOME .  (12)
+	cmd_without_declaration : HOME .  (18)
 
-	.  reduce 12
+	.  reduce 18
 
 
 state 9
-	cmd : MAKE . NAME expr  (13)
+	cmd_without_declaration : MAKE . NAME expr  (19)
 
-	NAME  shift 26
+	NAME  shift 32
 	.  error
 
 
 state 10
-	cmd : PRINTS .  (11)
+	cmd_without_declaration : REPEAT . expr LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (20)
 
-	.  reduce 11
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 33
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
 
 
 state 11
-	%entry% : '\001' program .  (26)
+	cmd_without_declaration : IF . condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (21)
 
-	.  reduce 26
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 34
+	condition  goto 35
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
 
 
 state 12
+	cmd_without_declaration : IFELSE . condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (22)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 34
+	condition  goto 36
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 13
+	cmd_without_declaration : PRINTS .  (17)
+
+	.  reduce 17
+
+
+state 14
+	cmd : SUB_PROG_DEC . opt_cmd_seq_without_dec END  (6)
+	opt_cmd_seq_without_dec : .  (8)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	MAKE  shift 9
+	REPEAT  shift 10
+	IF  shift 11
+	IFELSE  shift 12
+	PRINTS  shift 13
+	SUB_PROG  shift 15
+	END  reduce 8
+
+	opt_cmd_seq_without_dec  goto 37
+	cmd_without_declaration  goto 38
+	cmd_seq_without_dec  goto 39
+
+
+state 15
+	cmd_without_declaration : SUB_PROG .  (23)
+
+	.  reduce 23
+
+
+state 16
+	%entry% : '\001' program .  (42)
+
+	.  reduce 42
+
+
+state 17
 	program : opt_cmd_seq .  (1)
 
 	.  reduce 1
 
 
-state 13
+state 18
 	opt_cmd_seq : cmd_seq .  (3)
 	cmd_seq : cmd_seq . cmd  (5)
 
@@ -182,323 +281,167 @@ state 13
 	LEFT  shift 7
 	HOME  shift 8
 	MAKE  shift 9
-	PRINTS  shift 10
+	REPEAT  shift 10
+	IF  shift 11
+	IFELSE  shift 12
+	PRINTS  shift 13
+	SUB_PROG_DEC  shift 14
+	SUB_PROG  shift 15
 	$end  reduce 3
 
-	cmd  goto 27
+	cmd  goto 40
+	cmd_without_declaration  goto 20
 
 
-state 14
+state 19
 	cmd_seq : cmd .  (4)
 
 	.  reduce 4
 
 
-state 15
-	val_ref_par : LEFT_PAR . expr RIGHT_PAR  (19)
-
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	expr  goto 28
-	mul_div_mod  goto 19
-	val_ref_par  goto 20
-	power  goto 21
-
-
-state 16
-	val_ref_par : INT .  (17)
-
-	.  reduce 17
-
-
-state 17
-	val_ref_par : REF .  (18)
-
-	.  reduce 18
-
-
-state 18
-	cmd : FORWARD expr .  (6)
-	expr : expr . ADD mul_div_mod  (14)
-	expr : expr . MINUS mul_div_mod  (15)
-
-	ADD  shift 29
-	MINUS  shift 30
-	$end  reduce 6
-	FORWARD  reduce 6
-	BACKWARD  reduce 6
-	PRINT  reduce 6
-	RIGHT  reduce 6
-	LEFT  reduce 6
-	HOME  reduce 6
-	MAKE  reduce 6
-	PRINTS  reduce 6
-
-
-state 19
-	expr : mul_div_mod .  (16)
-	mul_div_mod : mul_div_mod . MUL power  (20)
-	mul_div_mod : mul_div_mod . DIV power  (21)
-	mul_div_mod : mul_div_mod . MOD power  (22)
-
-	MUL  shift 31
-	DIV  shift 32
-	MOD  shift 33
-	$end  reduce 16
-	FORWARD  reduce 16
-	BACKWARD  reduce 16
-	PRINT  reduce 16
-	RIGHT  reduce 16
-	LEFT  reduce 16
-	HOME  reduce 16
-	MAKE  reduce 16
-	ADD  reduce 16
-	MINUS  reduce 16
-	RIGHT_PAR  reduce 16
-	PRINTS  reduce 16
-
-
 state 20
-	power : val_ref_par .  (24)
-	power : val_ref_par . POW power  (25)
+	cmd : cmd_without_declaration .  (7)
 
-	POW  shift 34
-	$end  reduce 24
-	FORWARD  reduce 24
-	BACKWARD  reduce 24
-	PRINT  reduce 24
-	RIGHT  reduce 24
-	LEFT  reduce 24
-	HOME  reduce 24
-	MAKE  reduce 24
-	ADD  reduce 24
-	MINUS  reduce 24
-	MUL  reduce 24
-	DIV  reduce 24
-	MOD  reduce 24
-	RIGHT_PAR  reduce 24
-	PRINTS  reduce 24
+	.  reduce 7
 
 
 state 21
-	mul_div_mod : power .  (23)
+	val_ref_par : LEFT_PAR . expr RIGHT_PAR  (35)
 
-	.  reduce 23
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 41
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
 
 
 state 22
-	cmd : BACKWARD expr .  (8)
-	expr : expr . ADD mul_div_mod  (14)
-	expr : expr . MINUS mul_div_mod  (15)
+	val_ref_par : INT .  (33)
 
-	ADD  shift 29
-	MINUS  shift 30
-	$end  reduce 8
-	FORWARD  reduce 8
-	BACKWARD  reduce 8
-	PRINT  reduce 8
-	RIGHT  reduce 8
-	LEFT  reduce 8
-	HOME  reduce 8
-	MAKE  reduce 8
-	PRINTS  reduce 8
+	.  reduce 33
 
 
 state 23
-	cmd : PRINT expr .  (10)
-	expr : expr . ADD mul_div_mod  (14)
-	expr : expr . MINUS mul_div_mod  (15)
+	val_ref_par : REF .  (34)
 
-	ADD  shift 29
-	MINUS  shift 30
-	$end  reduce 10
-	FORWARD  reduce 10
-	BACKWARD  reduce 10
-	PRINT  reduce 10
-	RIGHT  reduce 10
-	LEFT  reduce 10
-	HOME  reduce 10
-	MAKE  reduce 10
-	PRINTS  reduce 10
+	.  reduce 34
 
 
 state 24
-	cmd : RIGHT expr .  (7)
-	expr : expr . ADD mul_div_mod  (14)
-	expr : expr . MINUS mul_div_mod  (15)
+	cmd_without_declaration : FORWARD expr .  (12)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
 
-	ADD  shift 29
-	MINUS  shift 30
-	$end  reduce 7
-	FORWARD  reduce 7
-	BACKWARD  reduce 7
-	PRINT  reduce 7
-	RIGHT  reduce 7
-	LEFT  reduce 7
-	HOME  reduce 7
-	MAKE  reduce 7
-	PRINTS  reduce 7
+	ADD  shift 42
+	MINUS  shift 43
+	$end  reduce 12
+	FORWARD  reduce 12
+	BACKWARD  reduce 12
+	PRINT  reduce 12
+	RIGHT  reduce 12
+	LEFT  reduce 12
+	HOME  reduce 12
+	MAKE  reduce 12
+	REPEAT  reduce 12
+	IF  reduce 12
+	IFELSE  reduce 12
+	END  reduce 12
+	RIGHT_SQUARE_BRACKET  reduce 12
+	PRINTS  reduce 12
+	SUB_PROG_DEC  reduce 12
+	SUB_PROG  reduce 12
 
 
 state 25
-	cmd : LEFT expr .  (9)
-	expr : expr . ADD mul_div_mod  (14)
-	expr : expr . MINUS mul_div_mod  (15)
+	expr : mul_div_mod .  (32)
+	mul_div_mod : mul_div_mod . MUL power  (36)
+	mul_div_mod : mul_div_mod . DIV power  (37)
+	mul_div_mod : mul_div_mod . MOD power  (38)
 
-	ADD  shift 29
-	MINUS  shift 30
-	$end  reduce 9
-	FORWARD  reduce 9
-	BACKWARD  reduce 9
-	PRINT  reduce 9
-	RIGHT  reduce 9
-	LEFT  reduce 9
-	HOME  reduce 9
-	MAKE  reduce 9
-	PRINTS  reduce 9
+	MUL  shift 44
+	DIV  shift 45
+	MOD  shift 46
+	$end  reduce 32
+	FORWARD  reduce 32
+	BACKWARD  reduce 32
+	PRINT  reduce 32
+	RIGHT  reduce 32
+	LEFT  reduce 32
+	HOME  reduce 32
+	MAKE  reduce 32
+	ADD  reduce 32
+	MINUS  reduce 32
+	REPEAT  reduce 32
+	IF  reduce 32
+	IFELSE  reduce 32
+	END  reduce 32
+	LEFT_SQUARE_BRACKET  reduce 32
+	RIGHT_SQUARE_BRACKET  reduce 32
+	RIGHT_PAR  reduce 32
+	EQUAL  reduce 32
+	SHARP  reduce 32
+	INF  reduce 32
+	INF_EQ  reduce 32
+	SUP  reduce 32
+	SUP_EQ  reduce 32
+	PRINTS  reduce 32
+	SUB_PROG_DEC  reduce 32
+	SUB_PROG  reduce 32
 
 
 state 26
-	cmd : MAKE NAME . expr  (13)
+	power : val_ref_par .  (40)
+	power : val_ref_par . POW power  (41)
 
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	expr  goto 35
-	mul_div_mod  goto 19
-	val_ref_par  goto 20
-	power  goto 21
+	POW  shift 47
+	$end  reduce 40
+	FORWARD  reduce 40
+	BACKWARD  reduce 40
+	PRINT  reduce 40
+	RIGHT  reduce 40
+	LEFT  reduce 40
+	HOME  reduce 40
+	MAKE  reduce 40
+	ADD  reduce 40
+	MINUS  reduce 40
+	MUL  reduce 40
+	DIV  reduce 40
+	MOD  reduce 40
+	REPEAT  reduce 40
+	IF  reduce 40
+	IFELSE  reduce 40
+	END  reduce 40
+	LEFT_SQUARE_BRACKET  reduce 40
+	RIGHT_SQUARE_BRACKET  reduce 40
+	RIGHT_PAR  reduce 40
+	EQUAL  reduce 40
+	SHARP  reduce 40
+	INF  reduce 40
+	INF_EQ  reduce 40
+	SUP  reduce 40
+	SUP_EQ  reduce 40
+	PRINTS  reduce 40
+	SUB_PROG_DEC  reduce 40
+	SUB_PROG  reduce 40
 
 
 state 27
-	cmd_seq : cmd_seq cmd .  (5)
+	mul_div_mod : power .  (39)
 
-	.  reduce 5
+	.  reduce 39
 
 
 state 28
-	expr : expr . ADD mul_div_mod  (14)
-	expr : expr . MINUS mul_div_mod  (15)
-	val_ref_par : LEFT_PAR expr . RIGHT_PAR  (19)
+	cmd_without_declaration : BACKWARD expr .  (14)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
 
-	ADD  shift 29
-	MINUS  shift 30
-	RIGHT_PAR  shift 36
-	.  error
-
-
-state 29
-	expr : expr ADD . mul_div_mod  (14)
-
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	mul_div_mod  goto 37
-	val_ref_par  goto 20
-	power  goto 21
-
-
-state 30
-	expr : expr MINUS . mul_div_mod  (15)
-
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	mul_div_mod  goto 38
-	val_ref_par  goto 20
-	power  goto 21
-
-
-state 31
-	mul_div_mod : mul_div_mod MUL . power  (20)
-
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	val_ref_par  goto 20
-	power  goto 39
-
-
-state 32
-	mul_div_mod : mul_div_mod DIV . power  (21)
-
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	val_ref_par  goto 20
-	power  goto 40
-
-
-state 33
-	mul_div_mod : mul_div_mod MOD . power  (22)
-
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	val_ref_par  goto 20
-	power  goto 41
-
-
-state 34
-	power : val_ref_par POW . power  (25)
-
-	LEFT_PAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	val_ref_par  goto 20
-	power  goto 42
-
-
-state 35
-	cmd : MAKE NAME expr .  (13)
-	expr : expr . ADD mul_div_mod  (14)
-	expr : expr . MINUS mul_div_mod  (15)
-
-	ADD  shift 29
-	MINUS  shift 30
-	$end  reduce 13
-	FORWARD  reduce 13
-	BACKWARD  reduce 13
-	PRINT  reduce 13
-	RIGHT  reduce 13
-	LEFT  reduce 13
-	HOME  reduce 13
-	MAKE  reduce 13
-	PRINTS  reduce 13
-
-
-state 36
-	val_ref_par : LEFT_PAR expr RIGHT_PAR .  (19)
-
-	.  reduce 19
-
-
-state 37
-	expr : expr ADD mul_div_mod .  (14)
-	mul_div_mod : mul_div_mod . MUL power  (20)
-	mul_div_mod : mul_div_mod . DIV power  (21)
-	mul_div_mod : mul_div_mod . MOD power  (22)
-
-	MUL  shift 31
-	DIV  shift 32
-	MOD  shift 33
+	ADD  shift 42
+	MINUS  shift 43
 	$end  reduce 14
 	FORWARD  reduce 14
 	BACKWARD  reduce 14
@@ -507,21 +450,73 @@ state 37
 	LEFT  reduce 14
 	HOME  reduce 14
 	MAKE  reduce 14
-	ADD  reduce 14
-	MINUS  reduce 14
-	RIGHT_PAR  reduce 14
+	REPEAT  reduce 14
+	IF  reduce 14
+	IFELSE  reduce 14
+	END  reduce 14
+	RIGHT_SQUARE_BRACKET  reduce 14
 	PRINTS  reduce 14
+	SUB_PROG_DEC  reduce 14
+	SUB_PROG  reduce 14
 
 
-state 38
-	expr : expr MINUS mul_div_mod .  (15)
-	mul_div_mod : mul_div_mod . MUL power  (20)
-	mul_div_mod : mul_div_mod . DIV power  (21)
-	mul_div_mod : mul_div_mod . MOD power  (22)
+state 29
+	cmd_without_declaration : PRINT expr .  (16)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
 
-	MUL  shift 31
-	DIV  shift 32
-	MOD  shift 33
+	ADD  shift 42
+	MINUS  shift 43
+	$end  reduce 16
+	FORWARD  reduce 16
+	BACKWARD  reduce 16
+	PRINT  reduce 16
+	RIGHT  reduce 16
+	LEFT  reduce 16
+	HOME  reduce 16
+	MAKE  reduce 16
+	REPEAT  reduce 16
+	IF  reduce 16
+	IFELSE  reduce 16
+	END  reduce 16
+	RIGHT_SQUARE_BRACKET  reduce 16
+	PRINTS  reduce 16
+	SUB_PROG_DEC  reduce 16
+	SUB_PROG  reduce 16
+
+
+state 30
+	cmd_without_declaration : RIGHT expr .  (13)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+
+	ADD  shift 42
+	MINUS  shift 43
+	$end  reduce 13
+	FORWARD  reduce 13
+	BACKWARD  reduce 13
+	PRINT  reduce 13
+	RIGHT  reduce 13
+	LEFT  reduce 13
+	HOME  reduce 13
+	MAKE  reduce 13
+	REPEAT  reduce 13
+	IF  reduce 13
+	IFELSE  reduce 13
+	END  reduce 13
+	RIGHT_SQUARE_BRACKET  reduce 13
+	PRINTS  reduce 13
+	SUB_PROG_DEC  reduce 13
+	SUB_PROG  reduce 13
+
+
+state 31
+	cmd_without_declaration : LEFT expr .  (15)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+
+	ADD  shift 42
+	MINUS  shift 43
 	$end  reduce 15
 	FORWARD  reduce 15
 	BACKWARD  reduce 15
@@ -530,35 +525,631 @@ state 38
 	LEFT  reduce 15
 	HOME  reduce 15
 	MAKE  reduce 15
-	ADD  reduce 15
-	MINUS  reduce 15
-	RIGHT_PAR  reduce 15
+	REPEAT  reduce 15
+	IF  reduce 15
+	IFELSE  reduce 15
+	END  reduce 15
+	RIGHT_SQUARE_BRACKET  reduce 15
 	PRINTS  reduce 15
+	SUB_PROG_DEC  reduce 15
+	SUB_PROG  reduce 15
+
+
+state 32
+	cmd_without_declaration : MAKE NAME . expr  (19)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 48
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 33
+	cmd_without_declaration : REPEAT expr . LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (20)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+
+	ADD  shift 42
+	MINUS  shift 43
+	LEFT_SQUARE_BRACKET  shift 49
+	.  error
+
+
+state 34
+	condition : expr . EQUAL expr  (24)
+	condition : expr . SHARP expr  (25)
+	condition : expr . INF expr  (26)
+	condition : expr . INF_EQ expr  (27)
+	condition : expr . SUP expr  (28)
+	condition : expr . SUP_EQ expr  (29)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+
+	ADD  shift 42
+	MINUS  shift 43
+	EQUAL  shift 50
+	SHARP  shift 51
+	INF  shift 52
+	INF_EQ  shift 53
+	SUP  shift 54
+	SUP_EQ  shift 55
+	.  error
+
+
+state 35
+	cmd_without_declaration : IF condition . LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (21)
+
+	LEFT_SQUARE_BRACKET  shift 56
+	.  error
+
+
+state 36
+	cmd_without_declaration : IFELSE condition . LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (22)
+
+	LEFT_SQUARE_BRACKET  shift 57
+	.  error
+
+
+state 37
+	cmd : SUB_PROG_DEC opt_cmd_seq_without_dec . END  (6)
+
+	END  shift 58
+	.  error
+
+
+state 38
+	cmd_seq_without_dec : cmd_without_declaration .  (10)
+
+	.  reduce 10
 
 
 state 39
-	mul_div_mod : mul_div_mod MUL power .  (20)
+	opt_cmd_seq_without_dec : cmd_seq_without_dec .  (9)
+	cmd_seq_without_dec : cmd_seq_without_dec . cmd_without_declaration  (11)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	MAKE  shift 9
+	REPEAT  shift 10
+	IF  shift 11
+	IFELSE  shift 12
+	PRINTS  shift 13
+	SUB_PROG  shift 15
+	END  reduce 9
+	RIGHT_SQUARE_BRACKET  reduce 9
+
+	cmd_without_declaration  goto 59
+
+
+state 40
+	cmd_seq : cmd_seq cmd .  (5)
+
+	.  reduce 5
+
+
+state 41
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+	val_ref_par : LEFT_PAR expr . RIGHT_PAR  (35)
+
+	ADD  shift 42
+	MINUS  shift 43
+	RIGHT_PAR  shift 60
+	.  error
+
+
+state 42
+	expr : expr ADD . mul_div_mod  (30)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	mul_div_mod  goto 61
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 43
+	expr : expr MINUS . mul_div_mod  (31)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	mul_div_mod  goto 62
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 44
+	mul_div_mod : mul_div_mod MUL . power  (36)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	val_ref_par  goto 26
+	power  goto 63
+
+
+state 45
+	mul_div_mod : mul_div_mod DIV . power  (37)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	val_ref_par  goto 26
+	power  goto 64
+
+
+state 46
+	mul_div_mod : mul_div_mod MOD . power  (38)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	val_ref_par  goto 26
+	power  goto 65
+
+
+state 47
+	power : val_ref_par POW . power  (41)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	val_ref_par  goto 26
+	power  goto 66
+
+
+state 48
+	cmd_without_declaration : MAKE NAME expr .  (19)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+
+	ADD  shift 42
+	MINUS  shift 43
+	$end  reduce 19
+	FORWARD  reduce 19
+	BACKWARD  reduce 19
+	PRINT  reduce 19
+	RIGHT  reduce 19
+	LEFT  reduce 19
+	HOME  reduce 19
+	MAKE  reduce 19
+	REPEAT  reduce 19
+	IF  reduce 19
+	IFELSE  reduce 19
+	END  reduce 19
+	RIGHT_SQUARE_BRACKET  reduce 19
+	PRINTS  reduce 19
+	SUB_PROG_DEC  reduce 19
+	SUB_PROG  reduce 19
+
+
+state 49
+	cmd_without_declaration : REPEAT expr LEFT_SQUARE_BRACKET . opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (20)
+	opt_cmd_seq_without_dec : .  (8)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	MAKE  shift 9
+	REPEAT  shift 10
+	IF  shift 11
+	IFELSE  shift 12
+	PRINTS  shift 13
+	SUB_PROG  shift 15
+	RIGHT_SQUARE_BRACKET  reduce 8
+
+	opt_cmd_seq_without_dec  goto 67
+	cmd_without_declaration  goto 38
+	cmd_seq_without_dec  goto 39
+
+
+state 50
+	condition : expr EQUAL . expr  (24)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 68
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 51
+	condition : expr SHARP . expr  (25)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 69
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 52
+	condition : expr INF . expr  (26)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 70
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 53
+	condition : expr INF_EQ . expr  (27)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 71
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 54
+	condition : expr SUP . expr  (28)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 72
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 55
+	condition : expr SUP_EQ . expr  (29)
+
+	LEFT_PAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 73
+	mul_div_mod  goto 25
+	val_ref_par  goto 26
+	power  goto 27
+
+
+state 56
+	cmd_without_declaration : IF condition LEFT_SQUARE_BRACKET . opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (21)
+	opt_cmd_seq_without_dec : .  (8)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	MAKE  shift 9
+	REPEAT  shift 10
+	IF  shift 11
+	IFELSE  shift 12
+	PRINTS  shift 13
+	SUB_PROG  shift 15
+	RIGHT_SQUARE_BRACKET  reduce 8
+
+	opt_cmd_seq_without_dec  goto 74
+	cmd_without_declaration  goto 38
+	cmd_seq_without_dec  goto 39
+
+
+state 57
+	cmd_without_declaration : IFELSE condition LEFT_SQUARE_BRACKET . opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (22)
+	opt_cmd_seq_without_dec : .  (8)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	MAKE  shift 9
+	REPEAT  shift 10
+	IF  shift 11
+	IFELSE  shift 12
+	PRINTS  shift 13
+	SUB_PROG  shift 15
+	RIGHT_SQUARE_BRACKET  reduce 8
+
+	opt_cmd_seq_without_dec  goto 75
+	cmd_without_declaration  goto 38
+	cmd_seq_without_dec  goto 39
+
+
+state 58
+	cmd : SUB_PROG_DEC opt_cmd_seq_without_dec END .  (6)
+
+	.  reduce 6
+
+
+state 59
+	cmd_seq_without_dec : cmd_seq_without_dec cmd_without_declaration .  (11)
+
+	.  reduce 11
+
+
+state 60
+	val_ref_par : LEFT_PAR expr RIGHT_PAR .  (35)
+
+	.  reduce 35
+
+
+state 61
+	expr : expr ADD mul_div_mod .  (30)
+	mul_div_mod : mul_div_mod . MUL power  (36)
+	mul_div_mod : mul_div_mod . DIV power  (37)
+	mul_div_mod : mul_div_mod . MOD power  (38)
+
+	MUL  shift 44
+	DIV  shift 45
+	MOD  shift 46
+	$end  reduce 30
+	FORWARD  reduce 30
+	BACKWARD  reduce 30
+	PRINT  reduce 30
+	RIGHT  reduce 30
+	LEFT  reduce 30
+	HOME  reduce 30
+	MAKE  reduce 30
+	ADD  reduce 30
+	MINUS  reduce 30
+	REPEAT  reduce 30
+	IF  reduce 30
+	IFELSE  reduce 30
+	END  reduce 30
+	LEFT_SQUARE_BRACKET  reduce 30
+	RIGHT_SQUARE_BRACKET  reduce 30
+	RIGHT_PAR  reduce 30
+	EQUAL  reduce 30
+	SHARP  reduce 30
+	INF  reduce 30
+	INF_EQ  reduce 30
+	SUP  reduce 30
+	SUP_EQ  reduce 30
+	PRINTS  reduce 30
+	SUB_PROG_DEC  reduce 30
+	SUB_PROG  reduce 30
+
+
+state 62
+	expr : expr MINUS mul_div_mod .  (31)
+	mul_div_mod : mul_div_mod . MUL power  (36)
+	mul_div_mod : mul_div_mod . DIV power  (37)
+	mul_div_mod : mul_div_mod . MOD power  (38)
+
+	MUL  shift 44
+	DIV  shift 45
+	MOD  shift 46
+	$end  reduce 31
+	FORWARD  reduce 31
+	BACKWARD  reduce 31
+	PRINT  reduce 31
+	RIGHT  reduce 31
+	LEFT  reduce 31
+	HOME  reduce 31
+	MAKE  reduce 31
+	ADD  reduce 31
+	MINUS  reduce 31
+	REPEAT  reduce 31
+	IF  reduce 31
+	IFELSE  reduce 31
+	END  reduce 31
+	LEFT_SQUARE_BRACKET  reduce 31
+	RIGHT_SQUARE_BRACKET  reduce 31
+	RIGHT_PAR  reduce 31
+	EQUAL  reduce 31
+	SHARP  reduce 31
+	INF  reduce 31
+	INF_EQ  reduce 31
+	SUP  reduce 31
+	SUP_EQ  reduce 31
+	PRINTS  reduce 31
+	SUB_PROG_DEC  reduce 31
+	SUB_PROG  reduce 31
+
+
+state 63
+	mul_div_mod : mul_div_mod MUL power .  (36)
+
+	.  reduce 36
+
+
+state 64
+	mul_div_mod : mul_div_mod DIV power .  (37)
+
+	.  reduce 37
+
+
+state 65
+	mul_div_mod : mul_div_mod MOD power .  (38)
+
+	.  reduce 38
+
+
+state 66
+	power : val_ref_par POW power .  (41)
+
+	.  reduce 41
+
+
+state 67
+	cmd_without_declaration : REPEAT expr LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec . RIGHT_SQUARE_BRACKET  (20)
+
+	RIGHT_SQUARE_BRACKET  shift 76
+	.  error
+
+
+state 68
+	condition : expr EQUAL expr .  (24)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+
+	ADD  shift 42
+	MINUS  shift 43
+	LEFT_SQUARE_BRACKET  reduce 24
+
+
+state 69
+	condition : expr SHARP expr .  (25)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+
+	ADD  shift 42
+	MINUS  shift 43
+	LEFT_SQUARE_BRACKET  reduce 25
+
+
+state 70
+	condition : expr INF expr .  (26)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+
+	ADD  shift 42
+	MINUS  shift 43
+	LEFT_SQUARE_BRACKET  reduce 26
+
+
+state 71
+	condition : expr INF_EQ expr .  (27)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+
+	ADD  shift 42
+	MINUS  shift 43
+	LEFT_SQUARE_BRACKET  reduce 27
+
+
+state 72
+	condition : expr SUP expr .  (28)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+
+	ADD  shift 42
+	MINUS  shift 43
+	LEFT_SQUARE_BRACKET  reduce 28
+
+
+state 73
+	condition : expr SUP_EQ expr .  (29)
+	expr : expr . ADD mul_div_mod  (30)
+	expr : expr . MINUS mul_div_mod  (31)
+
+	ADD  shift 42
+	MINUS  shift 43
+	LEFT_SQUARE_BRACKET  reduce 29
+
+
+state 74
+	cmd_without_declaration : IF condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec . RIGHT_SQUARE_BRACKET  (21)
+
+	RIGHT_SQUARE_BRACKET  shift 77
+	.  error
+
+
+state 75
+	cmd_without_declaration : IFELSE condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec . RIGHT_SQUARE_BRACKET LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (22)
+
+	RIGHT_SQUARE_BRACKET  shift 78
+	.  error
+
+
+state 76
+	cmd_without_declaration : REPEAT expr LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET .  (20)
 
 	.  reduce 20
 
 
-state 40
-	mul_div_mod : mul_div_mod DIV power .  (21)
+state 77
+	cmd_without_declaration : IF condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET .  (21)
 
 	.  reduce 21
 
 
-state 41
-	mul_div_mod : mul_div_mod MOD power .  (22)
+state 78
+	cmd_without_declaration : IFELSE condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET . LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (22)
+
+	LEFT_SQUARE_BRACKET  shift 79
+	.  error
+
+
+state 79
+	cmd_without_declaration : IFELSE condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET LEFT_SQUARE_BRACKET . opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET  (22)
+	opt_cmd_seq_without_dec : .  (8)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	MAKE  shift 9
+	REPEAT  shift 10
+	IF  shift 11
+	IFELSE  shift 12
+	PRINTS  shift 13
+	SUB_PROG  shift 15
+	RIGHT_SQUARE_BRACKET  reduce 8
+
+	opt_cmd_seq_without_dec  goto 80
+	cmd_without_declaration  goto 38
+	cmd_seq_without_dec  goto 39
+
+
+state 80
+	cmd_without_declaration : IFELSE condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec . RIGHT_SQUARE_BRACKET  (22)
+
+	RIGHT_SQUARE_BRACKET  shift 81
+	.  error
+
+
+state 81
+	cmd_without_declaration : IFELSE condition LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET LEFT_SQUARE_BRACKET opt_cmd_seq_without_dec RIGHT_SQUARE_BRACKET .  (22)
 
 	.  reduce 22
 
 
-state 42
-	power : val_ref_par POW power .  (25)
-
-	.  reduce 25
-
-
-23 terminals, 10 nonterminals
-27 grammar rules, 43 states
+37 terminals, 14 nonterminals
+43 grammar rules, 82 states

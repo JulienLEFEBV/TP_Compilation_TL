@@ -87,6 +87,28 @@ let rec comp_cmd cmd =
 		@ [INVOKE cmd]
 	| MAKE (ref,expr) ->
 		comp_expr expr @ [SET_GLOB ref]
+	| REPEAT (count,cmd) ->
+		let nb_iter = alloc_var() in
+		let i = alloc_var() in
+		let loop = new_label() in
+		let end_loop = new_label() in
+		(comp_expr count) @
+		[SET_GLOB nb_iter; PUSH 0; SET_GLOB i; LABEL loop; GET_GLOB nb_iter; GET_GLOB i; GOTO_GE end_loop]
+		@ (comp_cmd cmd)
+		@ [GET_GLOB i; PUSH 1; ADD; SET_GLOB i; GOTO loop; LABEL end_loop]
+	| IF (cond,cmd_then,cmd_else) ->
+		let lab_then = new_label() in 
+		let lab_else = new_label() in
+		let fin = new_label() in
+		(comp_cond cond lab_then lab_else) 
+		@ [LABEL lab_then] 
+		@ (comp_cmd cmd_then)
+		@ [GOTO fin]
+		@ [LABEL lab_else] 
+		@ (comp_cmd cmd_else)
+		@ [LABEL fin]
+	| CALL_CMD(sub_prog,_,_) ->
+		[CALL (int_of_string sub_prog)]
 	| _ -> failwith "unsupported command!"
 	 
 
@@ -121,5 +143,17 @@ and comp_expr expr =
 	@return			Condition quadruplets. *)
 and comp_cond cond l_true l_false : Stackinst.inst list =
 	match cond with
+	|	COMP(COMP_EQ, expr1, expr2) ->
+		(comp_expr expr1) @ (comp_expr expr2) @ [GOTO_EQ l_true] @ [GOTO l_false]
+	|	COMP(COMP_NE, expr1, expr2) ->
+		(comp_expr expr1) @ (comp_expr expr2) @ [GOTO_NE l_true] @ [GOTO l_false]
+	|	COMP(COMP_LT, expr1, expr2) ->
+		(comp_expr expr1) @ (comp_expr expr2) @ [GOTO_LT l_true] @ [GOTO l_false]
+	|	COMP(COMP_LE, expr1, expr2) ->
+		(comp_expr expr1) @ (comp_expr expr2) @ [GOTO_LE l_true] @ [GOTO l_false]
+	|	COMP(COMP_GT, expr1, expr2) ->
+		(comp_expr expr1) @ (comp_expr expr2) @ [GOTO_GT l_true] @ [GOTO l_false]
+	|	COMP(COMP_GE, expr1, expr2) ->
+		(comp_expr expr1) @ (comp_expr expr2) @ [GOTO_GE l_true] @ [GOTO l_false]
 	| _ -> failwith "unsupported condition!"
 	 
